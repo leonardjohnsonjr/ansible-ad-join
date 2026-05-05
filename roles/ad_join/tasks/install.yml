@@ -1,0 +1,19 @@
+---
+- name: Install required AD packages
+  ansible.builtin.package:
+    name: "{{ ad_required_packages }}"
+    state: present
+
+- name: Enable and start SSSD
+  ansible.builtin.service:
+    name: "{{ ad_sssd_service_name }}"
+    enabled: true
+    state: started
+  failed_when: false
+
+- name: Enable and start oddjobd
+  ansible.builtin.service:
+    name: "{{ ad_oddjobd_service_name }}"
+    enabled: true
+    state: started
+  failed_when: false

@@ -1,0 +1,7 @@
+---
+# Defaults for ad_check role.
+# All of these can be overridden by group_vars/all/common.yml or host_vars.
+
+ad_joined_to_different_domain: false
+ad_already_joined_to_requested_domain: false
+ad_join_required: false

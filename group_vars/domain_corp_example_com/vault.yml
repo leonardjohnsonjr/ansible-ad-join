@@ -1,0 +1,5 @@
+---
+# Example only. Encrypt this file.
+# ansible-vault encrypt group_vars/domain_corp_example_com/vault.yml
+
+vault_ad_join_password: "REPLACE_WITH_CORP_JOIN_ACCOUNT_PASSWORD"

@@ -1,0 +1,5 @@
+---
+# Example only. Encrypt this file.
+# ansible-vault encrypt group_vars/debian/vault.yml
+
+vault_debian_package_repo_note: "Optional Debian-specific vaulted values."

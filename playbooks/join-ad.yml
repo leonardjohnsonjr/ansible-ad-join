@@ -1,0 +1,57 @@
+---
+- name: Join Linux servers to Windows Active Directory
+  hosts: all
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Validate required AD variables
+      ansible.builtin.assert:
+        that:
+          - ad_domain is defined
+          - ad_domain_name is defined
+          - ad_realm is defined
+          - ad_join_user is defined
+          - ad_join_password is defined
+        fail_msg: >
+          Missing required AD variables. Confirm inventory domain group membership
+          and domain-specific group_vars are configured correctly.
+
+    - name: Confirm inventory domain matches domain variable file
+      ansible.builtin.assert:
+        that:
+          - ad_domain == ad_domain_name
+        fail_msg: >
+          Inventory ad_domain={{ ad_domain }} does not match loaded
+          ad_domain_name={{ ad_domain_name }}.
+
+  tasks:
+    - name: AD join workflow with rollback on failure
+      block:
+        - name: Back up files before AD changes
+          ansible.builtin.import_role:
+            name: ad_backup
+
+        - name: Check current AD join state
+          ansible.builtin.import_role:
+            name: ad_check
+
+        - name: Join host to AD when needed
+          ansible.builtin.import_role:
+            name: ad_join
+
+        - name: Test AD user and group resolution
+          ansible.builtin.import_role:
+            name: ad_test
+          when: ad_test_enabled | bool
+
+      rescue:
+        - name: Roll back AD join changes after failure
+          ansible.builtin.import_role:
+            name: ad_rollback
+
+        - name: Fail play after rollback
+          ansible.builtin.fail:
+            msg: >
+              AD join failed on {{ inventory_hostname }}.
+              Rollback tasks were executed. Review previous task output.

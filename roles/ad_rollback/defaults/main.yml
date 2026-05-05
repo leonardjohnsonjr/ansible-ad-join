@@ -1,0 +1,6 @@
+---
+# Defaults for ad_rollback role.
+# All of these can be overridden by group_vars/all/common.yml or host_vars.
+
+ad_rollback_leave_domain_on_failure: true    # leaves domain if join fails
+ad_rollback_restore_backups_on_failure: true      # restore files from the backup run

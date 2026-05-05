@@ -1,0 +1,10 @@
+---
+# Defaults for ad_join role.
+# All of these can be overridden by group_vars/all/common.yml or host_vars.
+
+ad_joined_to_different_domain: false
+ad_allow_rejoin_to_new_domain: false
+ad_enable_mkhomedir: true
+ad_mkhomedir_method: "authselect"  # Options: "authselect", "pam_auth_update"
+ad_authselect_profile: "sssd"
+ad_authselect_features: ["with-smartcard", "with-mkhomedir"] # Only used if ad_mkhomedir_method is "authselect" 

@@ -1,0 +1,36 @@
+---
+# Global AD join behavior
+
+ad_allow_rejoin_to_new_domain: false
+# false = fail if server is already joined to a different domain
+# true  = leave the current domain and join the desired domain
+
+ad_backup_root: /var/backups/ansible-ad-join
+
+ad_config_files_to_backup:
+  - /etc/sssd/sssd.conf
+  - /etc/krb5.conf
+  - /etc/realmd.conf
+  - /etc/nsswitch.conf
+  - /etc/pam.d/common-session
+  - /etc/sudoers
+
+ad_sudoers_dir: /etc/sudoers.d
+
+ad_use_fqdn_usernames: true
+ad_fallback_homedir: /home/%u@%d
+ad_default_shell: /bin/bash
+ad_cache_credentials: true
+
+ad_enable_mkhomedir: true
+
+ad_services:
+  - sssd
+  - oddjobd
+
+ad_join_timeout_seconds: 120
+
+ad_test_enabled: true
+
+ad_rollback_leave_domain_on_failure: true
+ad_rollback_restore_backups_on_failure: true

@@ -1,0 +1,9 @@
+---
+# Defaults for ad_backup role.
+# All of these can be overridden by group_vars/all/common.yml or host_vars.
+
+ad_backup_root: "/var/backups/ad_join_backups"
+ad_config_files_to_backup:
+  - "/etc/sssd/sssd.conf"
+  - "/etc/krb5.conf"
+  - "/etc/sudoers.d/ansible_ad_sudoers" # Example of a managed sudoers file to back up

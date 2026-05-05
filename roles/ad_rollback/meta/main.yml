@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  role_name: ad_rollback
+  author: infrastructure-team
+  description: >
+    Reverses all changes made during a failed AD domain-join operation.
+    Restores backed-up configuration files, leaves the domain (if joined),
+    removes installed packages, and returns the system to its pre-join state.
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Fedora
+      versions: ["38", "39", "40"]
+    - name: Debian
+      versions: ["11", "12"]
+    - name: Ubuntu
+      versions: ["22.04", "24.04"]
+dependencies: []

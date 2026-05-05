@@ -1,0 +1,46 @@
+---
+- name: Deploy managed SSSD configuration
+  ansible.builtin.template:
+    src: sssd.conf.j2
+    dest: /etc/sssd/sssd.conf
+    owner: root
+    group: root
+    mode: "0600"
+  notify:
+    - restart sssd
+
+- name: Enable mkhomedir on Fedora using authselect
+  ansible.builtin.command: >
+    authselect select {{ ad_authselect_profile }}
+    {{ ad_authselect_features | join(' ') }}
+    --force
+  register: ad_authselect_result
+  changed_when: "'Profile was selected' in ad_authselect_result.stdout or ad_authselect_result.rc == 0"
+  when:
+    - ad_enable_mkhomedir | bool
+    - ad_mkhomedir_method == "authselect"
+
+- name: Enable mkhomedir on Debian using pam-auth-update
+  ansible.builtin.command: pam-auth-update --enable mkhomedir
+  register: ad_pam_auth_update_result
+  changed_when: ad_pam_auth_update_result.rc == 0
+  when:
+    - ad_enable_mkhomedir | bool
+    - ad_mkhomedir_method == "pam_auth_update"
+
+- name: Ensure NSS uses SSS for passwd, group, and shadow
+  ansible.builtin.lineinfile:
+    path: /etc/nsswitch.conf
+    regexp: "^{{ item.key }}:"
+    line: "{{ item.key }}: {{ item.value }}"
+    backup: true
+  loop:
+    - key: passwd
+      value: "files sss systemd"
+    - key: group
+      value: "files sss systemd"
+    - key: shadow
+      value: "files sss"
+
+- name: Flush handlers after auth configuration
+  ansible.builtin.meta: flush_handlers

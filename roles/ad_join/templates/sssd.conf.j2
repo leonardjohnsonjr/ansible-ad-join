@@ -1,0 +1,18 @@
+[sssd]
+domains = {{ ad_domain_name }}
+config_file_version = 2
+services = nss, pam, sudo
+
+[domain/{{ ad_domain_name }}]
+ad_domain = {{ ad_domain_name }}
+krb5_realm = {{ ad_krb5_default_realm }}
+realmd_tags = manages-system joined-with-adcli
+cache_credentials = {{ ad_cache_credentials | bool | ternary('True', 'False') }}
+id_provider = ad
+krb5_store_password_if_offline = True
+default_shell = {{ ad_default_shell }}
+ldap_id_mapping = True
+use_fully_qualified_names = {{ ad_use_fqdn_usernames | bool | ternary('True', 'False') }}
+fallback_homedir = {{ ad_fallback_homedir }}
+access_provider = ad
+sudo_provider = ad

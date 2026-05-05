@@ -1,0 +1,44 @@
+---
+ad_realm: CORP.EXAMPLE.COM
+ad_domain_name: corp.example.com
+
+ad_join_user: svc-linux-join
+ad_join_password: "{{ vault_ad_join_password }}"
+
+ad_computer_ou: "OU=Linux Servers,OU=Servers,DC=corp,DC=example,DC=com"
+
+ad_krb5_default_realm: CORP.EXAMPLE.COM
+
+ad_test_user: "test.linux@corp.example.com"
+ad_test_group: "INF_READ@corp.example.com"
+
+# Creates one sudoers file per permission entry.
+# The role loops through this list and writes files under /etc/sudoers.d/.
+ad_sudo_permissions:
+  - name: INF_ADMIN
+    ad_group: "INF_ADMIN@corp.example.com"
+    sudoers_file: "10-ad-inf-admin"
+    runas: "ALL"
+    commands: "ALL"
+    nopasswd: false
+
+  - name: INF_WRITE
+    ad_group: "INF_WRITE@corp.example.com"
+    sudoers_file: "20-ad-inf-write"
+    runas: "ALL"
+    commands:
+      - /usr/bin/systemctl restart nginx
+      - /usr/bin/systemctl status nginx
+      - /usr/bin/journalctl
+    nopasswd: false
+
+  - name: INF_READ
+    ad_group: "INF_READ@corp.example.com"
+    sudoers_file: "30-ad-inf-read"
+    runas: "ALL"
+    commands:
+      - /usr/bin/systemctl status *
+      - /usr/bin/journalctl
+      - /usr/bin/less
+      - /usr/bin/cat
+    nopasswd: true

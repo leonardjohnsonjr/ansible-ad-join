@@ -1,0 +1,19 @@
+---
+- name: Validate sudo permission list is defined
+  ansible.builtin.assert:
+    that:
+      - ad_sudo_permissions is defined
+      - ad_sudo_permissions | length > 0
+    fail_msg: "ad_sudo_permissions must be defined in the domain-specific variable file."
+
+- name: Create AD sudoers files for domain permission groups
+  ansible.builtin.template:
+    src: sudoers-ad-group.j2
+    dest: "{{ ad_sudoers_dir }}/{{ item.sudoers_file }}"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: "/usr/sbin/visudo -cf %s"
+  loop: "{{ ad_sudo_permissions }}"
+  loop_control:
+    label: "{{ item.name }}"

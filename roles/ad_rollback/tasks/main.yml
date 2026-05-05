@@ -1,0 +1,41 @@
+---
+- name: Attempt to leave AD domain after failure
+  ansible.builtin.command: "realm leave {{ ad_domain_name }}"
+  register: ad_rollback_realm_leave
+  changed_when: ad_rollback_realm_leave.rc == 0
+  failed_when: false
+  when: ad_rollback_leave_domain_on_failure | bool
+  notify:
+    - restart sssd
+
+- name: Check whether backup directory exists
+  ansible.builtin.stat:
+    path: "{{ ad_backup_dir | default('') }}"
+  register: ad_rollback_backup_dir_stat
+  when:
+    - ad_rollback_restore_backups_on_failure | bool
+    - ad_backup_dir is defined
+
+- name: Restore backed up configuration files
+  ansible.builtin.copy:
+    src: "{{ ad_backup_dir }}/{{ item | regex_replace('^/', '') }}"
+    dest: "{{ item }}"
+    remote_src: true
+    owner: root
+    group: root
+    mode: preserve
+  loop: "{{ ad_backed_up_files | default([]) }}"
+  failed_when: false
+  when:
+    - ad_rollback_restore_backups_on_failure | bool
+    - ad_backup_dir is defined
+    - ad_rollback_backup_dir_stat.stat.exists | default(false)
+
+- name: Remove managed AD sudoers files after failure
+  ansible.builtin.file:
+    path: "{{ ad_sudoers_dir }}/{{ item.sudoers_file }}"
+    state: absent
+  loop: "{{ ad_sudo_permissions | default([]) }}"
+  loop_control:
+    label: "{{ item.sudoers_file | default(item.name) }}"
+  failed_when: false

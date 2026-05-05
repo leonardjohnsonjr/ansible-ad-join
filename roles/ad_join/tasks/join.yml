@@ -1,0 +1,39 @@
+---
+- name: Leave existing AD domain when rejoin is allowed
+  ansible.builtin.command: "realm leave {{ ad_current_domain }}"
+  register: ad_realm_leave
+  changed_when: ad_realm_leave.rc == 0
+  failed_when: false
+  when:
+    - ad_joined_to_different_domain | bool
+    - ad_allow_rejoin_to_new_domain | bool
+    - ad_current_domain | length > 0
+
+- name: Discover requested AD realm
+  ansible.builtin.command: "realm discover {{ ad_domain_name }}"
+  register: ad_realm_discover
+  changed_when: false
+
+- name: Join host to Active Directory
+  ansible.builtin.shell: |
+    set -o pipefail
+    printf '%s' "{{ ad_join_password }}" | realm join \
+      --user="{{ ad_join_user }}" \
+      --computer-ou="{{ ad_computer_ou }}" \
+      "{{ ad_domain_name }}"
+  args:
+    executable: /bin/bash
+  register: ad_join_result
+  no_log: true
+  changed_when: ad_join_result.rc == 0
+
+- name: Confirm host joined requested domain
+  ansible.builtin.command: realm list --name-only
+  register: ad_post_join_realm_list
+  changed_when: false
+
+- name: Assert requested domain is present after join
+  ansible.builtin.assert:
+    that:
+      - ad_domain_name | lower in ad_post_join_realm_list.stdout_lines | map('lower') | list
+    fail_msg: "Host did not successfully join {{ ad_domain_name }}."

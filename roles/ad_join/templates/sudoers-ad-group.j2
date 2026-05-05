@@ -1,0 +1,13 @@
+# Managed by Ansible.
+# AD group: {{ item.ad_group }}
+# Permission profile: {{ item.name }}
+
+{% set sudo_prefix = '%' ~ item.ad_group | replace(' ', '\\ ') %}
+{% set runas = item.runas | default('ALL') %}
+{% set nopasswd = item.nopasswd | default(false) %}
+
+{% if item.commands is string %}
+{{ sudo_prefix }} ALL=({{ runas }}) {{ 'NOPASSWD: ' if nopasswd else '' }}{{ item.commands }}
+{% else %}
+{{ sudo_prefix }} ALL=({{ runas }}) {{ 'NOPASSWD: ' if nopasswd else '' }}{{ item.commands | join(', ') }}
+{% endif %}

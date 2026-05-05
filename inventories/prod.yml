@@ -1,0 +1,30 @@
+---
+all:
+  children:
+    fedora:
+      hosts:
+        fedora-app-01:
+          ansible_host: 10.10.10.21
+          ad_domain: corp.example.com
+        fedora-app-02:
+          ansible_host: 10.10.10.22
+          ad_domain: lab.example.com
+
+    debian:
+      hosts:
+        debian-web-01:
+          ansible_host: 10.10.20.31
+          ad_domain: corp.example.com
+        debian-web-02:
+          ansible_host: 10.10.20.32
+          ad_domain: lab.example.com
+
+    domain_corp_example_com:
+      hosts:
+        fedora-app-01:
+        debian-web-01:
+
+    domain_lab_example_com:
+      hosts:
+        fedora-app-02:
+        debian-web-02:

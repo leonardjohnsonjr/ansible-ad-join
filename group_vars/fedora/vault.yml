@@ -1,0 +1,5 @@
+---
+# Example only. Encrypt this file.
+# ansible-vault encrypt group_vars/fedora/vault.yml
+
+vault_fedora_package_repo_note: "Optional Fedora-specific vaulted values."

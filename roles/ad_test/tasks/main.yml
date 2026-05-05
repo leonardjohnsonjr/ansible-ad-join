@@ -1,0 +1,26 @@
+---
+- name: Wait briefly for SSSD to populate cache
+  ansible.builtin.pause:
+    seconds: 5
+
+- name: Test AD user resolution
+  ansible.builtin.command: "getent passwd {{ ad_test_user }}"
+  register: ad_test_user_result
+  changed_when: false
+
+- name: Test AD group resolution
+  ansible.builtin.command: "getent group {{ ad_test_group }}"
+  register: ad_test_group_result
+  changed_when: false
+
+- name: Test id lookup for AD user
+  ansible.builtin.command: "id {{ ad_test_user }}"
+  register: ad_test_id_result
+  changed_when: false
+
+- name: Display AD validation results
+  ansible.builtin.debug:
+    msg:
+      - "User lookup succeeded: {{ ad_test_user }}"
+      - "Group lookup succeeded: {{ ad_test_group }}"
+      - "id output: {{ ad_test_id_result.stdout }}"

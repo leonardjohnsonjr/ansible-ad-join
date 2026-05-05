@@ -1,0 +1,57 @@
+---
+- name: Check current realm membership
+  ansible.builtin.command: realm list --name-only
+  register: ad_realm_list
+  changed_when: false
+  failed_when: false
+
+- name: Normalize joined domain list
+  ansible.builtin.set_fact:
+    ad_joined_domains: "{{ ad_realm_list.stdout_lines | default([]) | map('lower') | list }}"
+
+- name: Determine whether host is already joined to requested domain
+  ansible.builtin.set_fact:
+    ad_already_joined_to_requested_domain: "{{ ad_domain_name | lower in ad_joined_domains }}"
+
+- name: Determine whether host is joined to a different domain
+  ansible.builtin.set_fact:
+    ad_joined_to_different_domain: >-
+      {{
+        ad_joined_domains | length > 0
+        and not ad_already_joined_to_requested_domain
+      }}
+
+- name: Set current joined domain
+  ansible.builtin.set_fact:
+    ad_current_domain: "{{ ad_joined_domains[0] | default('') }}"
+
+- name: Fail when host is joined to a different domain and rejoin is disabled
+  ansible.builtin.fail:
+    msg: >
+      Host is already joined to {{ ad_current_domain }},
+      but inventory requests {{ ad_domain_name }}.
+      Set ad_allow_rejoin_to_new_domain=true to permit leaving the old domain.
+  when:
+    - ad_joined_to_different_domain | bool
+    - not ad_allow_rejoin_to_new_domain | bool
+
+- name: Decide whether join is required
+  ansible.builtin.set_fact:
+    ad_join_required: >-
+      {{
+        not ad_already_joined_to_requested_domain
+        or
+        (
+          ad_joined_to_different_domain | bool
+          and ad_allow_rejoin_to_new_domain | bool
+        )
+      }}
+
+- name: Report AD join state
+  ansible.builtin.debug:
+    msg:
+      - "Joined domains detected: {{ ad_joined_domains | default([]) }}"
+      - "Requested domain: {{ ad_domain_name }}"
+      - "Already joined to requested domain: {{ ad_already_joined_to_requested_domain }}"
+      - "Joined to different domain: {{ ad_joined_to_different_domain }}"
+      - "Join required: {{ ad_join_required }}"

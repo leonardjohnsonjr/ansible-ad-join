@@ -1,0 +1,51 @@
+---
+- name: Create timestamp for backup path
+  ansible.builtin.set_fact:
+    ad_backup_timestamp: "{{ ansible_date_time.iso8601_basic_short }}"
+
+- name: Set host backup directory
+  ansible.builtin.set_fact:
+    ad_backup_dir: "{{ ad_backup_root }}/{{ inventory_hostname }}/{{ ad_backup_timestamp }}"
+
+- name: Create backup directory
+  ansible.builtin.file:
+    path: "{{ ad_backup_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Check files before backup
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop: "{{ ad_config_files_to_backup }}"
+  register: ad_backup_file_stats
+
+- name: Write backup manifest
+  ansible.builtin.template:
+    src: "manifest.j2"
+    dest: "{{ ad_backup_dir }}/MANIFEST.txt"
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Back up existing AD-related configuration files
+  ansible.builtin.copy:
+    src: "{{ item.stat.path }}"
+    dest: "{{ ad_backup_dir }}/{{ item.stat.path | regex_replace('^/', '') }}"
+    remote_src: true
+    owner: root
+    group: root
+    mode: preserve
+  loop: "{{ ad_backup_file_stats.results }}"
+  when: item.stat.exists | bool
+
+- name: Store backed up file list
+  ansible.builtin.set_fact:
+    ad_backed_up_files: >-
+      {{
+        ad_backup_file_stats.results
+        | selectattr('stat.exists', 'equalto', true)
+        | map(attribute='stat.path')
+        | list
+      }}

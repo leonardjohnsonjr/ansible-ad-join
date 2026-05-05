@@ -1,0 +1,13 @@
+---
+- name: Install AD join packages
+  ansible.builtin.import_tasks: install.yml
+
+- name: Join or rejoin Active Directory domain
+  ansible.builtin.import_tasks: join.yml
+  when: ad_join_required | bool
+
+- name: Configure authentication stack
+  ansible.builtin.import_tasks: configure-auth.yml
+
+- name: Configure AD sudoers permissions
+  ansible.builtin.import_tasks: sudoers.yml
