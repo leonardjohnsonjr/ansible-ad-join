@@ -60,3 +60,10 @@
             msg: >
               AD join failed on {{ inventory_hostname }}.
               Rollback tasks were executed. Review previous task output.
+            register: fail_result
+
+      post_tasks:
+        - name: Report AD join
+          ansible.builtin.debug:
+            msg: >
+              {{ inventory_hostname }} {{ 'successfully' if not fail_result.failed else 'failed' }} joined to AD domain {{ ad_domain_name }}.
