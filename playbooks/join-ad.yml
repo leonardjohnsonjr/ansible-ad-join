@@ -5,6 +5,11 @@
   gather_facts: true
 
   pre_tasks:
+    - name: Ensure target OS is supported
+      ansible.builtin.fail:
+        msg: "Unsupported OS: {{ ansible_distribution }}. This playbook supports Fedora and Debian/Ubuntu."
+      when: ansible_distribution not in ['Fedora', 'Debian', 'Ubuntu']
+      
     - name: Validate required AD variables
       ansible.builtin.assert:
         that:
